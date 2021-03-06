@@ -301,13 +301,6 @@ def whole_evolution():
                     "File {}".format(key),
                     "Code smells {}. nested_try: {}, unchecked_exception: {}, print_statement: {}, return_code: {}, ignored_checked_exception: {}  ".format(item[6], item[1], item[2], item[3], item[4], item[5]),
                 )
-            
-## if file has a modification where code smell is added = append to list. (date, author)
-## if file has a modification where code smell is removed = append to list (date, author)
-## We need to keep track of the specific file.
-## has any value increased or decreased?
-
-## key/value? where key is filename and value is ((commit, [code smell], date, author)), 
 
 
 t0 = time.time()
