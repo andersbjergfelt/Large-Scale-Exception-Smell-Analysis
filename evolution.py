@@ -1,15 +1,15 @@
 import sys
+import os
 import ast
+from typing import Counter
 from git import repo
-import datetime
-
 from pydriller import RepositoryMining, git_repository
 from pydriller import GitRepository
+import time
 
 REPO_DIR = ''
 
 gitrepository = GitRepository(REPO_DIR)
-
 
 
 def is_try(node):
@@ -17,47 +17,44 @@ def is_try(node):
                hasattr(ast, "TryExcept") and isinstance(node, ast.TryExcept) or \
                hasattr(ast, "TryFinally") and isinstance(node, ast.TryFinally)
 
-
-
- 
-
 def check_for_nested_try(node):
     if is_try(node):
-        print("Nested try - code smell")
         return True
 
 def check_for_unchecked_exception(node):
     if node.type.id == None or node.type.id == "":
-        print("Unchecked exception")
+        return True
 
 def check_for_ignored_checked_exception(node):
     if node == isinstance(node, ast.Pass):
-        print("Code Smell - ignored checked exception")        
+        return True    
 
 def check_for_print_statement(node, body):
     ## node.body should be equal to 1 because we want to know whether the print statement is the only statement. == dummy handler
     if hasattr(ast, "Expr") == isinstance(node, ast.Expr) and len(body) == 1:
         if isinstance(node.value.func, ast.Name):
-            if node.value.func.id == "print" or node.value.func.id == "print":
-                print("Print - Code Smell")
+            if node.value.func.id == "print" or node.value.func.id == "Log" or node.value.func.id == "log":
                 return True
 
 def check_for_return_code_code_smell(node, body):
     if hasattr(ast, "Expr") == isinstance(node, ast.Expr) and len(body) == 1:
-       if node.value.func.id == "exit" or node.value.func.id == "sys.exit":
-                print("Return Code - Code Smell")
-                return True
-    if hasattr(ast, "Expr") == isinstance(node, ast.Expr) and len(body) == 2:
-        if body[0].value.func.id == "exit" or node.value.func.id == "sys" and body[1].value.func.id == "print" or node.value.func.id == "log":
-                    print("Return Code - Code Smell")
+         if isinstance(node.value.func, ast.Name):
+            if node.value.func.id == "exit" or node.value.func.id == "sys.exit":
                     return True
-        if body[1].value.func.id == "exit" or node.value.func.id == "sys" and body[0].value.func.id == "print" or node.value.func.id == "log":
-                    print("Return Code - Code Smell")
+    elif hasattr(ast, "Expr") == isinstance(node, ast.Expr) and len(body) == 2:
+        if isinstance(node.value.func, ast.Name):
+            if body[0].value.func.id == "exit" or node.value.func.id == "sys":
+                if  body[1].value.func.id == "print" or node.value.func.id == "log":
+                        return True
+            elif body[1].value.func.id == "exit" or node.value.func.id == "sys":
+                if body[0].value.func.id == "print" or node.value.func.id == "log":
                     return True      
     ### edge case if len(body) > 3. "exit" is still defined as a code smell. 
-    for b in body:
-        if b.value.func.id == "exit":
-            return True
+    if len(body) > 3:
+        for b in body:
+            if b.value.func.id == "exit":
+                return True
+    return False            
 
 def check_for_exception(node):
     if node.type.id != None:
@@ -130,46 +127,6 @@ def find_G3(node):
             if hasattr(ast, "For") == isinstance(node, ast.For) or hasattr(ast, "While") == isinstance(node, ast.While):
                 print("G3 - behavior-recovery")
                 return True
-
-
-
-def get_code_smells_evolution(gitrepository):
-    numberOfCodeSmells = 0
-    for file in gitrepository.files():
-        try:
-            if ".py" in str(file):
-                f = open(file)
-                user_ast = ast.parse(f.read())
-                for a in ast.walk(user_ast):
-                    if is_try(a) == True:
-                        for d in a.body:
-                            if check_for_nested_try(d):
-                                numberOfCodeSmells += 1
-                                print(file)
-                        for b in a.handlers:
-                            if check_for_unchecked_exception(b):
-                                    print(file)
-                                    numberOfCodeSmells += 1
-                                    break
-                            for c in b.body:
-                                if check_for_print_statement(c, b.body):
-                                    print(file)
-                                    numberOfCodeSmells += 1
-                                    break
-                                if check_for_return_code_code_smell(c, b.body):
-                                    print(file)
-                                    numberOfCodeSmells += 1
-                                    break
-                                if check_for_ignored_checked_exception(c):
-                                    print(file)
-                                    numberOfCodeSmells += 1
-                                    break
-        except Exception as e:
-            pass
-    
-    print(
-        " numberOfCodeSmells {}".format(numberOfCodeSmells)
-    )
 
 
 def get_G1_evolution(gitrepository):
@@ -266,64 +223,96 @@ def get_G3_evolution(gitrepository):
         " G3 {}".format(numberOfG3)
     )    
 
+def get_code_smells_evolution_test(path):
+    nested_try = 0
+    unchecked_exception = 0
+    print_statement = 0
+    return_code = 0
+    ignored_checked_exception = 0
+    any_code_smell = False
+    try:
+        f = open(path)
+        user_ast = ast.parse(f.read())
+        for a in ast.walk(user_ast):
+            if is_try(a) == True:
+                for d in a.body:
+                    if check_for_nested_try(d):
+                        nested_try += 1        
+                for b in a.handlers:
+                    if check_for_unchecked_exception(b):
+                        unchecked_exception += 1
+                
+                for c in b.body:
+                    if check_for_print_statement(c, b.body):
+                        print_statement += 1
+                            
+                    if check_for_return_code_code_smell(c, b.body):
+                        return_code += 1
+                            
+                    if check_for_ignored_checked_exception(c):
+                        ignored_checked_exception += 1
+                            
+    except Exception as e:
+        pass 
 
+    if nested_try > 0 or unchecked_exception > 0 or print_statement > 0 or return_code > 0 or ignored_checked_exception > 0:
+        any_code_smell = True
+        return (nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, any_code_smell) 
 
-"""
-if find_G2(c): 
-                                    numberOfG2 += 1
-                                    break
-                                if find_G3(c): 
-                                    numberOfG3 += 1
-                                    break
-"""
-
-def get_exceptionhandling_evolution_test(gitrepository):
-    numberOfG0 = 0
-    numberOfG1 = 0
-    numberOfG2 = 0
-    numberOfG3 = 0
-    for file in gitrepository.files():
-        try:
-            if ".py" in str(file):
-                f = open(file)
-                user_ast = ast.parse(f.read())
-                for a in ast.walk(user_ast):
-                    if is_try(a) == True:
-                        for d in a.body:
-                            if is_try(d):
-                                print("Nested Try")
-                        for b in a.handlers:
-                                for c in b.body:
-                                  ##if check_for_return_code_code_smell(c, b.body):
-                                  ##    print(file)  
-                                  ##check_for_print_statement(c, b.body)
-                                  print(c)
-                                  check_for_ignored_checked_exception(c)
-        except Exception as e:
-            pass
-
-
-
-
-##get_code_smells_evolution(gitrepository=gitrepository)
-##get_G1_evolution(gitrepository=gitrepository)
-##get_G2_evolution(gitrepository=gitrepository)
-##get_G3_evolution(gitrepository=gitrepository)
+    return (nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, False)  
 
 def whole_evolution():
-    newest_hash = gitrepository.get_head().hash
+    commits_with_code_smells_dict = dict()
     for commit in gitrepository.get_list_commits():
         print("Date is: {}".format(commit.committer_date))
-        gitrepository.checkout(commit.hash)
-        get_code_smells_evolution(gitrepository=gitrepository)
-        ##get_G1_evolution(gitrepository=gitrepository)
-        ##get_G2_evolution(gitrepository=gitrepository)
-        ##get_G3_evolution(gitrepository=gitrepository)
-    gitrepository.checkout(newest_hash)
+        for modification in commit.modifications:
+            if ".py" in str(modification.filename):
+                for root, dir, files in os.walk(gitrepository.path):
+                    if modification.filename in files:
+                        path = os.path.join(root, modification.filename)
+                if path is not None:
+                    
+                    nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, any_code_smell = get_code_smells_evolution_test(path)
+                    
+                    if any_code_smell and commits_with_code_smells_dict.get(modification.filename) == None:
+                        print("New smell")
+                        commits_with_code_smells_dict[modification.filename] = [(commit, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "added")]
+
+                    if  any_code_smell and commits_with_code_smells_dict.get(modification.filename) is not None:
+                        item = commits_with_code_smells_dict.get(modification.filename)[-1]
+                        if item[1] < nested_try or item[2] < unchecked_exception or item[3] < print_statement or item[4] < return_code or item[5] < ignored_checked_exception:
+                            commits_with_code_smells_dict[modification.filename].append((commit, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "added"))
+                        
+                        if item[1] > nested_try or item[2] > unchecked_exception or item[3] > print_statement or item[4] > return_code or item[5] > ignored_checked_exception:      
+                            commits_with_code_smells_dict[modification.filename].append((commit, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "removed"))
+
+                    elif not any_code_smell and commits_with_code_smells_dict.get(modification.filename) is not None:
+                        item = commits_with_code_smells_dict.get(modification.filename)[-1]
+
+                        if item[1] > nested_try or item[2] > unchecked_exception or item[3] > print_statement or item[4] > return_code or item[5] > ignored_checked_exception:
+                            commits_with_code_smells_dict[modification.filename].append((commit, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "removed"))
+                                                
+
+    for key in commits_with_code_smells_dict.keys():
+        for item in commits_with_code_smells_dict.get(key):
+            print(
+                    "Author {}".format(item[0].author.name),
+                    "Modified {}".format(item[0].committer_date),
+                    "File {}".format(key),
+                    "Code smells {}. nested_try: {}, unchecked_exception: {}, print_statement: {}, return_code: {}, ignored_checked_exception: {}  ".format(item[6], item[1], item[2], item[3], item[4], item[5]),
+                )
+            
+## if file has a modification where code smell is added = append to list. (date, author)
+## if file has a modification where code smell is removed = append to list (date, author)
+## We need to keep track of the specific file.
+## has any value increased or decreased?
+
+## key/value? where key is filename and value is ((commit, [code smell], date, author)), 
 
 
+t0 = time.time()
 whole_evolution()
+t1 = time.time()
+total = t1-t0
+print(total)
 
-##print(gitrepository.get_head().hash)
-
-##029b2c90437ebbe244baaf0cce4017fbb7fd2872
