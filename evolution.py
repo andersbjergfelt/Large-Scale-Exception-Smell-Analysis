@@ -1,6 +1,7 @@
 import sys
 import os
 import ast
+import json
 from typing import Counter
 from git import repo
 from pydriller import RepositoryMining, git_repository
@@ -261,51 +262,82 @@ def get_code_smells_evolution_test(path):
 
     return (nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, False)  
 
-def whole_evolution():
+def whole_evolution(repo):
+    print("Analysing repo ... {}".format(repo))
     commits_with_code_smells_dict = dict()
-    for commit in gitrepository.get_list_commits():
-        print("Date is: {}".format(commit.committer_date))
+    total_number_of_commits = 0
+    path = None
+    for commit in RepositoryMining(f"https://github.com/{repo}.git").traverse_commits():
+        total_number_of_commits += 1
         for modification in commit.modifications:
             if ".py" in str(modification.filename):
                 for root, dir, files in os.walk(gitrepository.path):
                     if modification.filename in files:
                         path = os.path.join(root, modification.filename)
                 if path is not None:
-                    
+
                     nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, any_code_smell = get_code_smells_evolution_test(path)
                     
                     if any_code_smell and commits_with_code_smells_dict.get(modification.filename) == None:
-                        print("New smell")
-                        commits_with_code_smells_dict[modification.filename] = [(commit, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "added")]
+                        commits_with_code_smells_dict[modification.filename] = [(commit.author.name, commit.committer_date, dict({'nested_try': nested_try}), dict({'unchecked_exception': unchecked_exception }), dict({'print_statement':print_statement}), dict({'return_code': return_code}), dict({'ignored_checked_exception': ignored_checked_exception}), "added")]
 
                     if  any_code_smell and commits_with_code_smells_dict.get(modification.filename) is not None:
                         item = commits_with_code_smells_dict.get(modification.filename)[-1]
-                        if item[1] < nested_try or item[2] < unchecked_exception or item[3] < print_statement or item[4] < return_code or item[5] < ignored_checked_exception:
-                            commits_with_code_smells_dict[modification.filename].append((commit, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "added"))
+
+                        if item[2]['nested_try'] < nested_try or item[3]['unchecked_exception'] < unchecked_exception or item[4]['print_statement'] < print_statement or item[5]['return_code'] < return_code or item[6]['ignored_checked_exception'] < ignored_checked_exception:
+                            commits_with_code_smells_dict[modification.filename].append((commit.author.name, commit.committer_date, dict({'nested_try': nested_try}), dict({'unchecked_exception': unchecked_exception }), dict({'print_statement':print_statement}), dict({'return_code': return_code}), dict({'ignored_checked_exception': ignored_checked_exception}), "added"))
                         
-                        if item[1] > nested_try or item[2] > unchecked_exception or item[3] > print_statement or item[4] > return_code or item[5] > ignored_checked_exception:      
-                            commits_with_code_smells_dict[modification.filename].append((commit, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "removed"))
+                        if item[2]['nested_try'] > nested_try or item[3]['unchecked_exception'] > unchecked_exception or item[4]['print_statement'] > print_statement or item[5]['return_code'] > return_code or item[6]['ignored_checked_exception'] > ignored_checked_exception:      
+                            commits_with_code_smells_dict[modification.filename].append((commit.author.name, commit.committer_date, dict({'nested_try': nested_try}), dict({'unchecked_exception': unchecked_exception }), dict({'print_statement':print_statement}), dict({'return_code': return_code}), dict({'ignored_checked_exception': ignored_checked_exception}), "removed"))
 
                     elif not any_code_smell and commits_with_code_smells_dict.get(modification.filename) is not None:
                         item = commits_with_code_smells_dict.get(modification.filename)[-1]
 
-                        if item[1] > nested_try or item[2] > unchecked_exception or item[3] > print_statement or item[4] > return_code or item[5] > ignored_checked_exception:
-                            commits_with_code_smells_dict[modification.filename].append((commit, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "removed"))
-                                                
+                        if item[2]['nested_try'] > nested_try or item[3]['unchecked_exception'] > unchecked_exception or item[4]['print_statement'] > print_statement or item[5]['return_code']  > return_code or item[6]['ignored_checked_exception'] > ignored_checked_exception:
+                            commits_with_code_smells_dict[modification.filename].append((commit.author.name, commit.committer_date, dict({'nested_try': nested_try}), dict({'unchecked_exception': unchecked_exception }), dict({'print_statement':print_statement}), dict({'return_code': return_code}), dict({'ignored_checked_exception': ignored_checked_exception}), "removed"))
 
+    x = repo.replace("/", "_")                  
+    filename = f"{x}_result.json"
+    
+    with open(filename, "w") as json_file:
+        json_file.write(json.dumps(commits_with_code_smells_dict, indent=4, sort_keys=True, default=str))
+
+
+"""
     for key in commits_with_code_smells_dict.keys():
         for item in commits_with_code_smells_dict.get(key):
             print(
-                    "Author {}".format(item[0].author.name),
-                    "Modified {}".format(item[0].committer_date),
+                    "Repo {}".format(repo),
+                    "Total number of commits in repo: {}".format(total_number_of_commits),
+                    "Author {}".format(item[0]),
+                    "Modified {}".format(item[1]),
                     "File {}".format(key),
-                    "Code smells {}. nested_try: {}, unchecked_exception: {}, print_statement: {}, return_code: {}, ignored_checked_exception: {}  ".format(item[6], item[1], item[2], item[3], item[4], item[5]),
+                    "Code smells {}. nested_try: {}, unchecked_exception: {}, print_statement: {}, return_code: {}, ignored_checked_exception: {}  ".format(item[6], item[1]['nested_try'], item[2]['unchecked_exception'], item[3]['print_statement'], item[4]['return_code'], item[5]['ignored_checked_exception']),
                 )
-
+"""
 
 t0 = time.time()
-whole_evolution()
+"""
+with open('Pythonrepos.json') as json_file:
+    data = json.load(json_file)
+    for p in data:
+        whole_evolution(p['repo'])
+"""
+for repo in set(
+        [
+            "zeeguu-ecosystem/Zeeguu-API",
+            "zeeguu-ecosystem/Zeeguu-Core",
+        ]
+    ):
+    whole_evolution(repo)
 t1 = time.time()
 total = t1-t0
 print(total)
 
+"""
+or repo in set(
+        [
+            
+        ]
+    ):
+"""
