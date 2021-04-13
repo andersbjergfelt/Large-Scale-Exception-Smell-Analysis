@@ -1,3 +1,5 @@
+from logging import exception
+from occurrence import Occurrence
 from exception_patterns import ExceptionPatterns
 import ast
 import json
@@ -218,8 +220,7 @@ def whole_evolution(repo):
     print("Analysing repo ... {}".format(repo))
     commits_with_code_smells_dict = dict()
     total_number_of_commits = 0
-    #nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, error_reporting, state_recovery, behavior_recovery = 0,0,0,0,0,0,0,0
- 
+
     try:
         for commit in RepositoryMining(f"https://github.com/{repo}.git").traverse_commits():
             total_number_of_commits += 1
@@ -240,85 +241,97 @@ def whole_evolution(repo):
                     continue
 
                 nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, any_code_smell, error_reporting, state_recovery, behavior_recovery, robustness_exception_handling = get_exception_handling_evolution(source_code)
-
-                code_smell = (dict({'Author': commit.author.name}), dict({'Committer Date': commit.committer_date}), dict({'nested_try': nested_try}), dict({'unchecked_exception': unchecked_exception }), dict({'print_statement':print_statement}), dict({'return_code': return_code}), dict({'ignored_checked_exception': ignored_checked_exception}),dict({'CodeSmellAddedOrRemoved': "added"}) ,dict({'error_reporting': error_reporting}), dict({'state_recovery': state_recovery}), dict({'behavior_recovery': behavior_recovery}) , dict({'RobustnessAddedOrRemoved': ""}), dict({'Changes':[]}))
-                robustness = (dict({'Author': commit.author.name}), dict({'Committer Date': commit.committer_date}), dict({'nested_try': nested_try}), dict({'unchecked_exception': unchecked_exception }), dict({'print_statement':print_statement}), dict({'return_code': return_code}), dict({'ignored_checked_exception': ignored_checked_exception}), dict({'CodeSmellAddedOrRemoved': ""}), dict({'error_reporting': error_reporting}), dict({'state_recovery': state_recovery}), dict({'behavior_recovery': behavior_recovery}) , dict({'RobustnessAddedOrRemoved': "added"}), dict({'Changes':[]}))
-                removed_code_smell = (dict({'Author': commit.author.name}), dict({'Committer Date': commit.committer_date}), dict({'nested_try': nested_try}), dict({'unchecked_exception': unchecked_exception }), dict({'print_statement':print_statement}), dict({'return_code': return_code}), dict({'ignored_checked_exception': ignored_checked_exception}), dict({'CodeSmellAddedOrRemoved': "removed"}) , dict({'error_reporting': error_reporting}), dict({'state_recovery': state_recovery}), dict({'behavior_recovery': behavior_recovery}), dict({'RobustnessAddedOrRemoved': ""}), dict({'Changes':[]}))
-                removed_robustness  = (dict({'Author': commit.author.name}), dict({'Committer Date': commit.committer_date}), dict({'nested_try': nested_try}), dict({'unchecked_exception': unchecked_exception }), dict({'print_statement':print_statement}), dict({'return_code': return_code}), dict({'ignored_checked_exception': ignored_checked_exception}), dict({'CodeSmellAddedOrRemoved': ""}), dict({'error_reporting': error_reporting}), dict({'state_recovery': state_recovery}), dict({'behavior_recovery': behavior_recovery}),dict({'RobustnessAddedOrRemoved': "removed"}), dict({'Changes':[]}))
-                both_added = (dict({'Author': commit.author.name}), dict({'Committer Date': commit.committer_date}), dict({'nested_try': nested_try}), dict({'unchecked_exception': unchecked_exception }), dict({'print_statement':print_statement}), dict({'return_code': return_code}), dict({'ignored_checked_exception': ignored_checked_exception}), dict({'CodeSmellAddedOrRemoved': "added"}) , dict({'error_reporting': error_reporting}), dict({'state_recovery': state_recovery}), dict({'behavior_recovery': behavior_recovery}), dict({'RobustnessAddedOrRemoved': "added"}), dict({'Changes':[]}))
-                both_removed  = (dict({'Author': commit.author.name}), dict({'Committer Date': commit.committer_date}), dict({'nested_try': nested_try}), dict({'unchecked_exception': unchecked_exception }), dict({'print_statement':print_statement}), dict({'return_code': return_code}), dict({'ignored_checked_exception': ignored_checked_exception}), dict({'CodeSmellAddedOrRemoved': "removed"}), dict({'error_reporting': error_reporting}), dict({'state_recovery': state_recovery}), dict({'behavior_recovery': behavior_recovery}),dict({'RobustnessAddedOrRemoved': "removed"}), dict({'Changes':[]}))
-                robustness_added_code_smell_removed = (dict({'Author': commit.author.name}), dict({'Committer Date': commit.committer_date}), dict({'nested_try': nested_try}), dict({'unchecked_exception': unchecked_exception }), dict({'print_statement':print_statement}), dict({'return_code': return_code}), dict({'ignored_checked_exception': ignored_checked_exception}), dict({'CodeSmellAddedOrRemoved': "removed"}) , dict({'error_reporting': error_reporting}), dict({'state_recovery': state_recovery}), dict({'behavior_recovery': behavior_recovery}), dict({'RobustnessAddedOrRemoved': "added"}), dict({'Changes':[]}))
-                robustness_removed_code_smell_added = (dict({'Author': commit.author.name}), dict({'Committer Date': commit.committer_date}), dict({'nested_try': nested_try}), dict({'unchecked_exception': unchecked_exception }), dict({'print_statement':print_statement}), dict({'return_code': return_code}), dict({'ignored_checked_exception': ignored_checked_exception}), dict({'CodeSmellAddedOrRemoved': "added"}) , dict({'error_reporting': error_reporting}), dict({'state_recovery': state_recovery}), dict({'behavior_recovery': behavior_recovery}), dict({'RobustnessAddedOrRemoved': "removed"}), dict({'Changes':[]}))
-                exception_smell_switch = (dict({'Author': commit.author.name}), dict({'Committer Date': commit.committer_date}), dict({'nested_try': nested_try}), dict({'unchecked_exception': unchecked_exception }), dict({'print_statement':print_statement}), dict({'return_code': return_code}), dict({'ignored_checked_exception': ignored_checked_exception}), dict({'CodeSmellAddedOrRemoved': ""}) , dict({'error_reporting': error_reporting}), dict({'state_recovery': state_recovery}), dict({'behavior_recovery': behavior_recovery}), dict({'RobustnessAddedOrRemoved': ""}), dict({'Changes':[]}))
+                
                 if commits_with_code_smells_dict.get(file) is None:
                     if robustness_exception_handling:
                         if any_code_smell:
+                            both_added = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "added", error_reporting, state_recovery,  behavior_recovery, "added", [])
                             commits_with_code_smells_dict[file] = [both_added]
                         else:
+                            robustness = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "", error_reporting, state_recovery,  behavior_recovery, "added", [])
                             commits_with_code_smells_dict[file] = [robustness]
                     elif any_code_smell:
+                        code_smell = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "added", error_reporting, state_recovery,  behavior_recovery, "", [])
                         commits_with_code_smells_dict[file] = [code_smell]
                 
                 if commits_with_code_smells_dict.get(file) is not None:
-                    item = commits_with_code_smells_dict.get(file)[-1]
-                    current_nested_try = item[2]['nested_try']
-                    current_unchecked_exception = item[3]['unchecked_exception']
-                    current_print_statement = item[4]['print_statement']
-                    current_return_code = item[5]['return_code']
-                    current_ignored_checked_exception = item[6]['ignored_checked_exception']
-                    current_error_reporting = item[8]['error_reporting']
-                    current_state_recovery = item[9]['state_recovery']
-                    current_behavior_recovery = item[10]['behavior_recovery']
+                    current_occurrence = commits_with_code_smells_dict.get(file)[-1]
+                    current_nested_try = current_occurrence.nested_try
+                    current_unchecked_exception = current_occurrence.unchecked_exception
+                    current_print_statement = current_occurrence.print_statement
+                    current_return_code = current_occurrence.return_code
+                    current_ignored_checked_exception = current_occurrence.ignored_checked_exception
+                    current_error_reporting = current_occurrence.error_reporting
+                    current_state_recovery = current_occurrence.state_recovery
+                    current_behavior_recovery = current_occurrence.behavior_recovery
                     current_exception_smell_list = [current_nested_try, current_unchecked_exception, current_print_statement, current_return_code, current_ignored_checked_exception]
-                    new_exception_smell_list = [nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception]
-                    current_robustness = [current_error_reporting, current_state_recovery, current_behavior_recovery]
-                    new_robustness = [error_reporting, state_recovery, behavior_recovery]
                     current_exception_smell_list_sum = sum(current_exception_smell_list)
-                    new_exception_smell_list_sum = sum(new_exception_smell_list)
+                    current_robustness = [current_error_reporting, current_state_recovery, current_behavior_recovery]
                     current_robustness_sum = sum(current_robustness)
+
+                    new_exception_smell_list = [nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception]
+                    new_exception_smell_list_sum = sum(new_exception_smell_list)
+                    new_robustness = [error_reporting, state_recovery, behavior_recovery]
                     new_robustness_sum = sum(new_robustness)
 
                     if any_code_smell == True and robustness_exception_handling == False:
                         if current_exception_smell_list_sum > new_exception_smell_list_sum: 
+                            removed_code_smell = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "removed", error_reporting, state_recovery,  behavior_recovery, "", [])
                             commits_with_code_smells_dict[file].append(removed_code_smell)
 
                         if (current_exception_smell_list_sum > 0 and new_exception_smell_list_sum > 0) and current_exception_smell_list_sum == new_exception_smell_list_sum:
                             if check_if_exception_smell_switched(current_exception_smell_list, new_exception_smell_list) is not None:
-                                exception_smell_switch[12]["Changes"] = check_if_exception_smell_switched(current_exception_smell_list, new_exception_smell_list)
+                                changes = check_if_exception_smell_switched(current_exception_smell_list, new_exception_smell_list)
+                                exception_smell_switch = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "", error_reporting, state_recovery,  behavior_recovery, "", changes)
                                 commits_with_code_smells_dict[file].append(exception_smell_switch)
                         
                         if current_exception_smell_list_sum < new_exception_smell_list_sum:
                             if current_robustness_sum > 0 and new_robustness_sum == 0:
+                                robustness_removed_code_smell_added = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "added", error_reporting, state_recovery,  behavior_recovery, "removed", [])
                                 commits_with_code_smells_dict[file].append(robustness_removed_code_smell_added)
                             else:
+                                code_smell = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "added", error_reporting, state_recovery,  behavior_recovery, "", [])
                                 commits_with_code_smells_dict[file].append(code_smell)
 
                     if robustness_exception_handling == True and any_code_smell == False:
                         if current_robustness_sum < new_robustness_sum:
                             if current_exception_smell_list_sum > 0 and new_exception_smell_list_sum == 0:
+                                robustness_added_code_smell_removed = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "removed", error_reporting, state_recovery,  behavior_recovery, "added", [])
                                 commits_with_code_smells_dict[file].append(robustness_added_code_smell_removed)
                             else:
+                                robustness = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "", error_reporting, state_recovery,  behavior_recovery, "added", [])
                                 commits_with_code_smells_dict[file].append(robustness)     
 
                         if current_robustness_sum > new_robustness_sum:
+                            removed_robustness = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "", error_reporting, state_recovery,  behavior_recovery, "removed", [])
                             commits_with_code_smells_dict[file].append(removed_robustness) 
 
                     if any_code_smell == False and robustness_exception_handling == False:
                         if (new_robustness_sum + new_exception_smell_list_sum) == 0 and (current_exception_smell_list_sum > 0 and current_robustness_sum > 0):
-                                commits_with_code_smells_dict[file].append(both_removed)
+                            both_removed = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "removed", error_reporting, state_recovery,  behavior_recovery, "removed", [])
+                            commits_with_code_smells_dict[file].append(both_removed)
+
                         if (new_robustness_sum + new_exception_smell_list_sum) == 0 and (current_exception_smell_list_sum > 0):
+                                removed_code_smell = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "removed", error_reporting, state_recovery,  behavior_recovery, "", [])
                                 commits_with_code_smells_dict[file].append(removed_code_smell)
+
                         elif (new_robustness_sum + new_exception_smell_list_sum) == 0 and (current_robustness_sum > 0):
+                            removed_robustness = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "", error_reporting, state_recovery,  behavior_recovery, "removed", [])
                             commits_with_code_smells_dict[file].append(removed_robustness)
 
                     if any_code_smell == True and robustness_exception_handling == True:
                         if ((new_exception_smell_list_sum > current_exception_smell_list_sum) and (new_robustness_sum > current_robustness_sum)):
+                            both_added = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "added", error_reporting, state_recovery,  behavior_recovery, "added", [])
                             commits_with_code_smells_dict[file].append(both_added)
                             continue
+
                         if ((new_exception_smell_list_sum == current_exception_smell_list_sum) and (new_robustness_sum > current_robustness_sum)):
+                            robustness = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "", error_reporting, state_recovery,  behavior_recovery, "added", [])
                             commits_with_code_smells_dict[file].append(robustness)
                             continue
+
                         if ((new_exception_smell_list_sum > current_exception_smell_list_sum) and (new_robustness_sum == current_robustness_sum)):
+                            code_smell = Occurrence(commit.author.name, commit.committer_date, nested_try, unchecked_exception, print_statement, return_code, ignored_checked_exception, "added", error_reporting, state_recovery,  behavior_recovery, "", [])
                             commits_with_code_smells_dict[file].append(code_smell)
                             continue
  
@@ -327,11 +340,11 @@ def whole_evolution(repo):
         print(str(e))
 
     x = repo.replace("/", "_")                  
-    
+    filename = f"/Users/bjergfelt/Desktop/Kandidat/new/Python_api_topic_python/{x}_result.json"
     finaldict = dict({'repo': repo, 'total_commits': total_number_of_commits})
     finaldict.update(commits_with_code_smells_dict)
     with open(filename, "w") as json_file:
-        json_file.write(json.dumps(finaldict, indent=4, sort_keys=False, default=str))
+        json_file.write(json.dumps(finaldict, indent=4, sort_keys=False, default=lambda x: x.__dict__))
 
 
 t0 = time.time()
@@ -348,7 +361,7 @@ print(total)
 """
 if __name__ == '__main__':
     t0 = time.time()
-    with open('/Users/bjergfelt/Desktop/Kandidat/python_repos/Python_api_topic_python.json') as json_file:
+    with open('') as json_file:
         repos = []
         data = json.load(json_file)
         for p in data:

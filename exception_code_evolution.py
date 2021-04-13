@@ -17,7 +17,7 @@ check if "CodeSmellAddedOrRemoved": "" or "removed" and look for changes in robu
 evolution = dict()
 
 def get_times():
-    for root, dir, files in os.walk(""):
+    for root, dir, files in os.walk("/Users/bjergfelt/Desktop/Kandidat/new/Python_api_topic_python"):
         for file in files:
             try:     
                 path = os.path.join(root, file)
@@ -28,14 +28,14 @@ def get_times():
                             continue
                         for index in range(len(data.get(key))):
 
-                            if data.get(key)[index][7]["CodeSmellAddedOrRemoved"] == "added":
-                                d3 = datetime.fromisoformat(data.get(key)[index][1]['Committer Date'])
+                            if data.get(key)[index]["code_smell_added_or_removed"] == "added":
+                                d3 = datetime.fromisoformat(data.get(key)[index]['committer_date'])
 
                                 evolution[key] = []
                                 evolution[key].append(dict({'CS_Added':d3}))
                  
-                            if data.get(key)[index][7]["CodeSmellAddedOrRemoved"] == "removed":
-                                d4 = datetime.fromisoformat(data.get(key)[index][1]['Committer Date'])
+                            if data.get(key)[index]["code_smell_added_or_removed"] == "removed":
+                                d4 = datetime.fromisoformat(data.get(key)[index]['committer_date'])
                                 evolution[key].append(dict(CS_Removed=d4))
 
             except Exception as e:
