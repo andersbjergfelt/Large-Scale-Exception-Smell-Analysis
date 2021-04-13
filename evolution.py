@@ -177,37 +177,37 @@ def get_exception_handling_evolution(source_code):
 
 def check_if_exception_smell_switched(current_exception_smell_list, new_exception_smell_list):
     switched_exception_smells = []   
-    exception_smell_switch = dict()
+    exception_smell_switch = dict({'from':[], 'to':[]})
     for i in range(0, len(current_exception_smell_list) - 1):
        
         if (current_exception_smell_list[i] != new_exception_smell_list[i]):
             if(i == 0):
                 if current_exception_smell_list[i] < new_exception_smell_list[i]:
-                    exception_smell_switch['to'] = "nested try"
+                    exception_smell_switch['to'].append("nested try")
                 else:
-                     exception_smell_switch['from'] = "nested try"  
+                     exception_smell_switch['from'].append("nested try")
             if(i == 1):
                 if current_exception_smell_list[i] < new_exception_smell_list[i]:
-                    exception_smell_switch['to'] = "unchecked exception"
+                    exception_smell_switch['to'].append("unchecked exception")
                 else:
-                     exception_smell_switch['from'] = "unchecked exception"   
+                     exception_smell_switch['from'].append("unchecked exception")  
             if(i == 2):
                 if current_exception_smell_list[i] < new_exception_smell_list[i]:
-                    exception_smell_switch['to'] = "print statement"
+                    exception_smell_switch['to'].append("print statement")
                 else:
-                     exception_smell_switch['from'] = "print statement"    
+                     exception_smell_switch['from'].append("print statement")  
             if(i == 3):
                 if current_exception_smell_list[i] < new_exception_smell_list[i]:
-                    exception_smell_switch['to'] = "return code"
+                    exception_smell_switch['to'].append("return code")
                 else:
-                     exception_smell_switch['from'] = "return code"         
+                     exception_smell_switch['from'].append("return code")        
             if(i == 4):
                 if current_exception_smell_list[i] < new_exception_smell_list[i]:
-                    exception_smell_switch['to'] = "ignored checked exception"
+                    exception_smell_switch['to'].append("ignored checked exception")
                 else:
-                     exception_smell_switch['from'] = "ignored checked exception"    
+                     exception_smell_switch['from'].append("ignored checked exception")   
     
-    if exception_smell_switch:
+    if len(exception_smell_switch['from']) > 0 and len(exception_smell_switch['to']) > 0:
         switched_exception_smells.append(exception_smell_switch)   
     
     if len(switched_exception_smells) > 0:
@@ -340,13 +340,13 @@ def whole_evolution(repo):
         print(str(e))
 
     x = repo.replace("/", "_")                  
-    filename = f"/Users/bjergfelt/Desktop/Kandidat/new/Python_api_topic_python/{x}_result.json"
+    filename = f"/Users/bjergfelt/Desktop/Kandidat/repo_results_tracking_evolution/{x}_result.json"
     finaldict = dict({'repo': repo, 'total_commits': total_number_of_commits})
     finaldict.update(commits_with_code_smells_dict)
     with open(filename, "w") as json_file:
         json_file.write(json.dumps(finaldict, indent=4, sort_keys=False, default=lambda x: x.__dict__))
 
-
+"""
 t0 = time.time()
 for repo in set(
         [
@@ -361,17 +361,16 @@ print(total)
 """
 if __name__ == '__main__':
     t0 = time.time()
-    with open('') as json_file:
+    with open('/Users/bjergfelt/Desktop/Kandidat/python_repos/Python_application_topic_django.json') as json_file:
         repos = []
         data = json.load(json_file)
         for p in data:
             repos.append(p['repo'])
   
-        with Pool(1) as p:
+        with Pool(20) as p:
             p.map(whole_evolution, repos)
             p.terminate()
 
     t1 = time.time()
     total = t1-t0   
     print(total)
-"""
