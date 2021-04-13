@@ -4,11 +4,15 @@ import json
 repos = []
 headers = {'Authorization': 'token ' + ''}
 language = "Python"
-filename = f"{language}repos.json"
+label = "beginner"
+filename = f"{language}_artificial-intelligence.json"
+topic = "django-application"
+label = "beginner"
+label2 = "good-first-issues"
 ##print(f"creating file: '{filename}'")
-for number in range(1, 2):
+for number in range(1, 11):
     results = requests.get(
-    f'https://api.github.com/search/repositories?q=language:{language}&per_page=100&page={number}', headers=headers).json()
+    f'https://api.github.com/search/repositories?q=artificial-intelligence+language:python&per_page=100&page={number}', headers=headers).json()
     try:
         for repo in results['items']:
             repo_name = repo['full_name']
