@@ -1,18 +1,15 @@
 import requests
-from datetime import datetime
 import json
+
 repos = []
-headers = {'Authorization': 'token ' + ''}
+headers = {'Authorization': 'token ' + 'd6ca43223530b01cb13a51af0dc62b354e9eb3a3'}
 language = "Python"
-label = "beginner"
-filename = f"{language}_artificial-intelligence.json"
-topic = "django-application"
-label = "beginner"
-label2 = "good-first-issues"
-##print(f"creating file: '{filename}'")
+filename = f"{language}_machine_learning.json"
+# print(f"creating file: '{filename}'")
 for number in range(1, 11):
     results = requests.get(
-    f'https://api.github.com/search/repositories?q=artificial-intelligence+language:python&per_page=100&page={number}', headers=headers).json()
+        f'https://api.github.com/search/repositories?q=machine_learning+language:python&per_page=100&page={number}',
+        headers=headers).json()
     try:
         for repo in results['items']:
             repo_name = repo['full_name']

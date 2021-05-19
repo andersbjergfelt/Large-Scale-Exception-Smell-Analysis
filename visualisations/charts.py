@@ -1,7 +1,10 @@
 import matplotlib.pyplot as plt
+plt.rcParams.update({'font.size': 10
+                     })
+
 def exception_smell_topics_distribution():
-    labels = 'Nested try', 'Only Generic Exception', 'Print statement', 'Return code', "Ignored exception"
-    sizes = [16299, 118272, 9400, 1032, 175483]
+    labels = 'Nested try', 'Generic Exception', 'Print statement', 'Exit code', "Ignored exception"
+    sizes = [9410, 116085, 17726, 1093, 86258]
 
     fig1, ax1 = plt.subplots()
     ax1.pie(sizes, labels=labels, autopct='%1.1f%%',
@@ -12,8 +15,8 @@ def exception_smell_topics_distribution():
 
 
 def exception_smell_python_in_a_day_distribution():
-    labels = 'Nested try', 'Only Generic Exception', 'Print statement', 'Return code', "Ignored exception"
-    sizes = [5182, 37127, 4129, 409, 44493]
+    labels = 'Nested try', 'Generic Exception', 'Print statement', 'Exit code', "Ignored exception"
+    sizes = [6847, 77918, 15839, 560, 54688]
 
     fig1, ax1 = plt.subplots()
     ax1.pie(sizes, labels=labels, autopct='%1.1f%%',
@@ -22,11 +25,12 @@ def exception_smell_python_in_a_day_distribution():
 
     plt.show()
 
-##exception_smell_python_in_a_day_distribution()
+
+#exception_smell_python_in_a_day_distribution()
 
 def robustness_topics_distribution():
     labels = 'Error reporting', 'State recovery', 'Behavior recovery'
-    sizes = [1079433, 359950, 5997]
+    sizes = [476435, 59009, 3283]
 
     fig1, ax1 = plt.subplots()
     ax1.pie(sizes, labels=labels, autopct='%1.1f%%',
@@ -34,10 +38,11 @@ def robustness_topics_distribution():
     ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
 
     plt.show()
+
 
 def robustness_in_day_of_python_distribution():
     labels = 'Error reporting', 'State recovery', 'Behavior recovery'
-    sizes = [174949, 60015, 1002]
+    sizes = [307677, 37306, 1800]
 
     fig1, ax1 = plt.subplots()
     ax1.pie(sizes, labels=labels, autopct='%1.1f%%',
@@ -46,5 +51,9 @@ def robustness_in_day_of_python_distribution():
 
     plt.show()
 
-robustness_in_day_of_python_distribution()
-##robustness_topics_distribution()
+
+
+#exception_smell_topics_distribution()
+robustness_topics_distribution()
+#exception_smell_python_in_a_day_distribution()
+#robustness_in_day_of_python_distribution()
