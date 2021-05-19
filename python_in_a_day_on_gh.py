@@ -310,7 +310,7 @@ txt_file_exists = os.path.exists("not_python_repo.txt")
 if txt_file_exists:
     with open("not_python_repo.txt", "r") as txt_file:
         not_python_repositories_set = set(txt_file.read().splitlines())
-        # not_python_repositories = txt_file.readlines()
+        
 
 
 def check_if_not_python_project(repo):
