@@ -18,7 +18,7 @@ check if "CodeSmellAddedOrRemoved": "" or "removed" and look for changes in robu
 evolution = dict()
 
 def get_times():
-    for root, dir, files in os.walk("/Users/bjergfelt/Desktop/Kandidat/17-05-results/Python_machine_learning"):
+    for root, dir, files in os.walk(""):
         for file in files:
             try:     
                 path = os.path.join(root, file)

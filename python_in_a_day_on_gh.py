@@ -240,7 +240,7 @@ def python_in_a_day_on_gh(repo, repo_commits):
 
     # print(f"Writing results for ... {repo}")
     x = repo.replace("/", "_")
-    filename = f"/Users/bjergfelt/Desktop/Kandidat/17-05-results/pythoncommitsinadayongh/{x}_result.json"
+    filename = f"/pythoncommitsinadayongh/{x}_result.json"
     finaldict = dict({'repo': repo, 'total_commits': total_number_of_commits})
     finaldict.update(commits_with_code_smells_dict)
     with open(filename, "w") as result_file:
@@ -324,7 +324,7 @@ def check_if_not_python_project(repo):
 def check_if_result_is_present(key):
     x = key.replace("/", "_")
     exists = os.path.isfile(
-        f"/Users/bjergfelt/Desktop/Kandidat/pythoncommitsinadayongh_results_python_10_03_21_new_test/{x}_result.json")
+        f"/pythoncommitsinadayongh_results_python_10_03_21_new_test/{x}_result.json")
     if exists:
         return True
     else:
@@ -333,7 +333,7 @@ def check_if_result_is_present(key):
 def already_processed(key):
     x = key.replace("/", "_")
     exists = os.path.isfile(
-        f"/Users/bjergfelt/Desktop/Kandidat/17-05-results/pythoncommitsinadayongh/{x}_result.json")
+        f"pythoncommitsinadayongh/{x}_result.json")
     if exists:
         return True
     else:
@@ -396,7 +396,7 @@ if __name__ == '__main__':
     for i in range(0, 24):
         try:
             with open(
-                    f"/Users/bjergfelt/Desktop/Kandidat/pythoncommitsinadayongh_10_03_21/hour_{i}_push_events.json") as json_file:
+                    f"pythoncommitsinadayongh_10_03_21/hour_{i}_push_events.json") as json_file:
                 data = json.load(json_file)
                 for event in data:
                     if repo_with_commits.get(event['repo']['name']) is not None:

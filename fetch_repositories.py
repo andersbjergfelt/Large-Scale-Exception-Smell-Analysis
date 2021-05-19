@@ -2,7 +2,7 @@ import requests
 import json
 
 repos = []
-headers = {'Authorization': 'token ' + 'd6ca43223530b01cb13a51af0dc62b354e9eb3a3'}
+headers = {'Authorization': 'token ' + ''}
 language = "Python"
 filename = f"{language}_machine_learning.json"
 # print(f"creating file: '{filename}'")
