@@ -9,7 +9,7 @@ This is a repository for replicating the results from my thesis: "Large Scale "E
 
 ### Requirements
 
-- Python 3
+- Python 3.7+
 
 The following command will install the packages according to the configuration file `requirements.txt`
 
