@@ -1,7 +1,7 @@
 
 # What is this?
 
-This is the replicability package of my thesis: "Large Scale "Exception Smell" Analysis".
+This is a repository for replicating the results from my thesis: "Large Scale "Exception Smell" Analysis".
 
 ### How do I replicate the results for __Python in a day?__
 
