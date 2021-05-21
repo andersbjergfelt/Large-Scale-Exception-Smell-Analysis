@@ -3,7 +3,6 @@ from pydriller import RepositoryMining
 from multiprocessing import Pool
 from helpers.exception_handler_helper import ExceptionHandlerHelper
 from helpers.robustness_helper import RobustnessHelper
-import traceback
 from exception_handling_patterns.exception_handler_patterns import ExceptionHandler
 from helpers.loc_helper import LOCHelper
 import os

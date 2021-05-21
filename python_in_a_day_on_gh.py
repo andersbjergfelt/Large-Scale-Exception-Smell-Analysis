@@ -59,7 +59,7 @@ def process_changes(current, handler_changes, new):
 
     if exception_smell_and_robustness_switched_in_between is not None \
             and (current_exception_smell_list_sum \
-            == new_exception_smell_list_sum and current_robustness_list_sum == new_robustness_list_sum):
+                 == new_exception_smell_list_sum and current_robustness_list_sum == new_robustness_list_sum):
         if len(new.changes) > 0:
             new.changes.extend(exception_smell_and_robustness_switched_in_between)
         else:
@@ -240,7 +240,10 @@ def python_in_a_day_on_gh(repo, repo_commits):
 
     # print(f"Writing results for ... {repo}")
     x = repo.replace("/", "_")
-    filename = f"/pythoncommitsinadayongh/{x}_result.json"
+    path_to_results = f'python_commits_in_a_day_on_gh/'
+    if not os.path.exists(path_to_results):
+        os.makedirs(path_to_results)
+    filename = f"python_commits_in_a_day_on_gh/{x}_result.json"
     finaldict = dict({'repo': repo, 'total_commits': total_number_of_commits})
     finaldict.update(commits_with_code_smells_dict)
     with open(filename, "w") as result_file:
@@ -304,36 +307,26 @@ def check_if_python_project(repo):
 
 
 not_python_repositories = []
-not_python_repositories_set = set()
+python_repositories_set = set()
 
-txt_file_exists = os.path.exists("not_python_repo.txt")
-if txt_file_exists:
-    with open("not_python_repo.txt", "r") as txt_file:
-        not_python_repositories_set = set(txt_file.read().splitlines())
-        
+python_repositories_txt_exists = os.path.exists("python_in_a_day_repos.txt")
+
+if python_repositories_txt_exists:
+    with open('python_in_a_day_repos.txt', 'r') as txt_file:
+        python_repositories_set = set(txt_file.read().splitlines())
 
 
-def check_if_not_python_project(repo):
-    ##new_line_repo = f"{repo}\n" 
-    new_line_repo = f"{repo}"
-    if new_line_repo in not_python_repositories_set:
+def check_if_repo_is_present(repo):
+    x = repo.replace("/", "_")
+    if x in python_repositories_set:
         return True
     return False
 
 
-def check_if_result_is_present(key):
-    x = key.replace("/", "_")
-    exists = os.path.isfile(
-        f"/pythoncommitsinadayongh_results_python_10_03_21_new_test/{x}_result.json")
-    if exists:
-        return True
-    else:
-        return False
-
 def already_processed(key):
     x = key.replace("/", "_")
     exists = os.path.isfile(
-        f"pythoncommitsinadayongh/{x}_result.json")
+        f"python_commits_in_a_day_on_gh/{x}_result.json")
     if exists:
         return True
     else:
@@ -383,12 +376,6 @@ def process_item(repo):
     python_in_a_day_on_gh(key, value)
     print(f"Done analysing ... {key}")
 
-def process_items(repo):
-    key = repo[0]
-    value = repo[1]
-    python_in_a_day_on_gh(key, value)
-    print(f"Done analysing ... {key}")
-
 
 if __name__ == '__main__':
     t0 = time.time()
@@ -396,7 +383,7 @@ if __name__ == '__main__':
     for i in range(0, 24):
         try:
             with open(
-                    f"pythoncommitsinadayongh_10_03_21/hour_{i}_push_events.json") as json_file:
+                    f"push_events_10_03_21/hour_{i}_push_events.json") as json_file:
                 data = json.load(json_file)
                 for event in data:
                     if repo_with_commits.get(event['repo']['name']) is not None:
@@ -407,7 +394,7 @@ if __name__ == '__main__':
                                     commit['author']['name'] != "dependabot[bot]" and "[bot]" not in commit['author'][
                                 'name']:
                                 repo_with_commits.get(event['repo']['name']).append(commit['sha'])
-                            ##commit_sha_array.append(commit['sha'])
+
                     else:
                         sha_array = []
                         for commit in event['payload']['commits']:
@@ -429,8 +416,7 @@ if __name__ == '__main__':
     ### pre analysis
 
     for item in repo_with_commits.items():
-        ## if check_if_not_python_project(item[0]) is False and check_if_result_is_present(item[0]) is False:
-        if check_if_result_is_present(item[0]):
+        if check_if_repo_is_present(item[0]):
             repo_dict = dict({item[0]: item[1]})
             remaining_files_to_analyse.update(repo_dict)
 
@@ -439,10 +425,7 @@ if __name__ == '__main__':
     d = manager.dict()
     d['repo_commits'] = remaining_files_to_analyse
 
-    # for repo in d['repo_commits'].items():
-    #    process_items(repo)
-
-    with Pool(3) as p:
+    with Pool(4) as p:
         p.map(process_item, d['repo_commits'].items())
         p.terminate()
 

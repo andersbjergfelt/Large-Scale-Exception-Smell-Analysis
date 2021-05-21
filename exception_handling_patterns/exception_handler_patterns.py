@@ -1,6 +1,4 @@
 import ast
-import traceback
-
 from occurrence.exception_handler_occurrence import ExceptionHandlerOccurrence
 from occurrence.exception_smell import ExceptionSmell
 from occurrence.robustness import Robustness
