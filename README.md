@@ -30,7 +30,7 @@ python3 python_in_a_day_on_gh.py
 ```
 
 
-### How do I replicate the results for __Python in a day?__
+### How do I replicate the results for the different topics?
 
 Clone this repository.
 
