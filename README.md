@@ -9,7 +9,7 @@ This is the README file for the reproduction package of my thesis: "Large Scale 
 
 ### Requirements
 
-> Python 3
+- Python 3
 
 The following command will install the packages according to the configuration file `requirements.txt`
 
