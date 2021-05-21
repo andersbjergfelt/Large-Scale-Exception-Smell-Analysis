@@ -3,9 +3,6 @@
 
 This is a repository for replicating the results from my thesis: "Large Scale "Exception Smell" Analysis".
 
-### How do I replicate the results for __Python in a day?__
-
-
 
 ### Requirements
 
@@ -15,7 +12,10 @@ The following command will install the packages according to the configuration f
 
 > pip3 install -r requirements.txt
 
-### Installation 
+
+
+### How do I replicate the results for __Python in a day?__
+
 
 Clone this repository.
 
@@ -30,3 +30,12 @@ python3 python_in_a_day_on_gh.py
 ```
 
 
+### How do I replicate the results for __Python in a day?__
+
+Clone this repository.
+
+From the terminal, the analysis can be run as in the following:
+
+```
+python3 topic_analysis.py
+```

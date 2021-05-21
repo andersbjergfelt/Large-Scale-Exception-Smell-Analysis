@@ -163,7 +163,7 @@ class Evolution:
             print(e)
 
         repo_name = repository.replace("/", "_")
-        path_to_results = f'/analysis_results/{topic}'
+        path_to_results = f'topic_analysis_results/{topic}'
         if not os.path.exists(path_to_results):
             os.makedirs(path_to_results)
         filename = f"{path_to_results}/{repo_name}_result.json"
@@ -262,18 +262,22 @@ class Evolution:
 
         return handler_changes, next
 
+    def check_if_result_is_present(self, key, topic):
+        with open(f'python_repos_for_analysis/repos_for_{topic}.txt', 'r') as txt_file:
+            if key in txt_file.read().splitlines():
+                return True
+            else:
+                return False
+
     def whole_evolution_multiple_repositories(self, topic):
-        with open(f'/python_repos_for_analysis/{topic}.json') as json_file:
+        with open(f'python_repos_for_analysis/{topic}.json') as json_file:
             repos = []
             data = json.load(json_file)
             for p in data:
                 if self.check_if_result_is_present(p['repo'], topic):
                     repos.append(p['repo'])
 
-        ##for repo in repos:
-        ##    self.whole_evolution_with_try_except_tracking(repo, topic)
-
-        with Pool(10) as p:
+        with Pool(4) as p:
             p.starmap(self.whole_evolution_with_try_except_tracking, zip(repos, repeat(topic)))
             p.terminate()
 
@@ -295,17 +299,7 @@ class Evolution:
         with open(filename, "w") as result_file:
             result_file.write(json.dumps(finaldict, indent=4, sort_keys=False, default=lambda x: x.__dict__))
 
-    def check_if_result_is_present(self, key, topic):
-        x = key.replace("/", "_")
-        exists = os.path.isfile(
-            f"/1-05-results/{topic}/{x}_result.json")
-        if exists:
-            return True
-        else:
-            return False
-
     def whole_evolution_loc_multiple_repositories(self):
-        # '/Users/bjergfelt/Desktop/Kandidat/python_repos_for_analysis/Python_application.json'
         with open('python_repos_for_analysis/Python_django.json') as json_file:
             repos = []
             data = json.load(json_file)
@@ -313,7 +307,7 @@ class Evolution:
                 if self.check_if_result_is_present(p['repo']):
                     repos.append(p['repo'])
 
-        with Pool(6) as p:
+        with Pool(4) as p:
             p.map(self.whole_evolution_with_loc, repos)
             p.terminate()
 
