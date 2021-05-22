@@ -39,3 +39,18 @@ From the terminal, the analysis can be run as in the following:
 ```
 python3 topic_analysis.py
 ```
+
+
+### What if I want to test this on a single Python repository? 
+
+From the terminal: 
+
+```
+python3 exception_handling_analysis --repository "<path_to_repository>" 
+```
+
+For example: 
+
+```
+python3 exception_handling_analysis --repository "zeeguu-ecosystem/Zeeguu-API" 
+```
