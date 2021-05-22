@@ -46,11 +46,11 @@ python3 topic_analysis.py
 From the terminal: 
 
 ```
-python3 exception_handling_analysis --repository "<path_to_repository>" 
+python3 exception_handling_analysis.py --repository "<path_to_repository>" 
 ```
 
 For example: 
 
 ```
-python3 exception_handling_analysis --repository "zeeguu-ecosystem/Zeeguu-API" 
+python3 exception_handling_analysis.py --repository "zeeguu-ecosystem/Zeeguu-API" 
 ```
