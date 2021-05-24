@@ -16,19 +16,6 @@ class ResultExtraction:
     def __init__(self):
         pass
 
-    def only_ignored_exceptions(self, exception_handlers):
-        occurrences = 0
-        for exception_handler in exception_handlers:
-            smell = exception_handler["exception_smell"]
-            if smell["ignored_exception"] > 0:
-                """
-                and smell["nested_try"] == 0 and smell["generic_exception"] > 0 \
-                and smell["print_statement"] == 0 and smell["exit_code"] == 0 and smell["raise_generic_exception"] == 0:
-                """
-                occurrences += 1
-
-        return occurrences
-
     def gini(self, array):
         """Calculate the Gini coefficient of a numpy array."""
         # All values are treated equally, arrays must be 1d:
