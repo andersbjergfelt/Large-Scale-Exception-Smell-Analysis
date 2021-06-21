@@ -3,6 +3,23 @@
 
 This is a repository for replicating the results from my thesis: "Large Scale "Exception Smell" Analysis".
 
+Please notice there are some legacy namings. 
+
+generic_exception -> catch_generic_exception
+
+exception_type_is_not_generic -> catch_typed_exception
+
+raise_generic_exception -> throw_generic_exception
+
+raise_type_exception -> throw_typed_exception 
+
+behavior_recovery -> retry
+
+robustness -> better_handling_exception_pattern
+
+robustness_exception_handling -> better_handling
+
+robustness_added_or_removed -> better_handling_added_or_removed
 
 ### Requirements
 
