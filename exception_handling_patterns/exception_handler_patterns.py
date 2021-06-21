@@ -1,7 +1,7 @@
 import ast
 from occurrence.exception_handler_occurrence import ExceptionHandlerOccurrence
 from occurrence.exception_smell import ExceptionSmell
-from occurrence.better_handling_exception_pattern import BetterHandlingExceptionPattern
+from occurrence.robustness import Robustness
 
 
 class ExceptionHandler:
@@ -72,7 +72,7 @@ class ExceptionHandler:
         if isinstance(node, ast.Pass) and len(except_body) == 1:
             return True
 
-    def check_for_throwing_generic_exception(self, node, except_body):
+    def check_for_raise_generic_exception(self, node, except_body):
         if isinstance(except_body.type, ast.Name):
             if except_body.type.id == 'Exception':
                 if isinstance(node, ast.Raise):
@@ -129,7 +129,7 @@ class ExceptionHandler:
         if isinstance(node, ast.Return):
             return True
 
-    def check_for_exit_code(self, node, except_body):
+    def check_for_return_code(self, node, except_body):
 
         if not isinstance(node, ast.Expr):
             return False
@@ -172,11 +172,11 @@ class ExceptionHandler:
     * Replace dummy handler with rethrow
     """
 
-    def check_for_throw_typed(self, node):
+    def check_for_dummy_handler_with_retrow(self, node):
         if isinstance(node, ast.Raise):
             return True
 
-    def check_if_typed_exception(self, node):
+    def check_if_exception_is_not_generic(self, node):
         if isinstance(node, ast.ExceptHandler):
             if isinstance(node.type, ast.Name):
                 if node.type.id != "Exception" and node.type.id != "BaseException":
@@ -198,7 +198,7 @@ class ExceptionHandler:
     Look for the assignment in both the try body and except.
     """
 
-    def check_if_state_recovery(self, node, try_body):
+    def find_state_recovery(self, node, try_body):
         assignment_targets = []
         if isinstance(node, ast.Assign):
             for target in node.targets:
@@ -226,7 +226,7 @@ class ExceptionHandler:
     If there is a while loop or for loop we must interpret that as recovery. 
     """
 
-    def check_if_retry_pattern(self, node):
+    def find_behavior_recovery(self, node):
         if isinstance(node, ast.For) or isinstance(node, ast.While):
             return True
 
@@ -253,14 +253,14 @@ class ExceptionHandler:
             if user_ast is not None:
                 for a in ast.walk(user_ast):
                     if self.is_try(a):
-                        exception_smell = ExceptionSmell(nested_try=0, catch_generic_exception=0, print_statement=0,
+                        exception_smell = ExceptionSmell(nested_try=0, generic_exception=0, print_statement=0,
                                                          exit_code=0,
-                                                         ignored_exception=0, throw_generic_exception=0,
+                                                         ignored_exception=0, raise_generic_exception=0,
                                                          break_statement=0)
 
-                        better_handling_exception_pattern = BetterHandlingExceptionPattern(catch_typed_exception=0, throw_typed_exception=0,
+                        robustness = Robustness(exception_type_is_not_generic=0, raise_type_exception=0,
                                                 return_statement=0,
-                                                import_from=0, state_recovery=0, retry=0)
+                                                import_from=0, state_recovery=0, behavior_recovery=0)
 
                         exception_handler = ExceptionHandlerOccurrence(author=commit.author.name,
                                                                        lineno=a.lineno,
@@ -268,7 +268,7 @@ class ExceptionHandler:
                                                                        exception_smell=exception_smell,
                                                                        any_exception_smell=False,
                                                                        exception_smell_added_or_removed="",
-                                                                       better_handling_exception_pattern=better_handling_exception_pattern,
+                                                                       robustness=robustness,
                                                                        robustness_exception_handling=False,
                                                                        robustness_added_or_removed="",
                                                                        changes=[])
@@ -283,12 +283,12 @@ class ExceptionHandler:
                         for b in a.handlers:
 
                             if ExceptionHandler().check_for_generic_exception(b):
-                                exception_handler.exception_smell.catch_generic_exception += 1
+                                exception_handler.exception_smell.generic_exception += 1
                                 exception_handler.any_exception_smell = True
 
-                            if ExceptionHandler().check_if_typed_exception(b):
-                                exception_handler.better_handling_exception_pattern.catch_typed_exception += 1
-                                exception_handler.better_handling = True
+                            if ExceptionHandler().check_if_exception_is_not_generic(b):
+                                exception_handler.robustness.exception_type_is_not_generic += 1
+                                exception_handler.robustness_exception_handling = True
 
                             for c in b.body:
                                 if ExceptionHandler().check_for_ignored_exception(c, b.body):
@@ -299,39 +299,39 @@ class ExceptionHandler:
                                     exception_handler.exception_smell.print_statement += 1
                                     exception_handler.any_exception_smell = True
 
-                                if ExceptionHandler().check_for_exit_code(c, b.body):
+                                if ExceptionHandler().check_for_return_code(c, b.body):
                                     exception_handler.exception_smell.exit_code += 1
                                     exception_handler.any_exception_smell = True
 
-                                raise_is_generic = ExceptionHandler().check_for_throwing_generic_exception(c, b)
+                                raise_is_generic = ExceptionHandler().check_for_raise_generic_exception(c, b)
 
                                 if raise_is_generic:
-                                    exception_handler.exception_smell.throw_generic_exception += 1
+                                    exception_handler.exception_smell.raise_generic_exception += 1
                                     exception_handler.any_exception_smell = True
 
-                                if ExceptionHandler().check_for_throw_typed(c) and not raise_is_generic:
-                                    exception_handler.better_handling_exception_pattern.throw_typed_exception += 1
-                                    exception_handler.better_handling = True
+                                if ExceptionHandler().check_for_dummy_handler_with_retrow(c) and not raise_is_generic:
+                                    exception_handler.robustness.raise_type_exception += 1
+                                    exception_handler.robustness_exception_handling = True
 
                                 if ExceptionHandler().check_for_break_statement(c, b.body):
                                     exception_handler.exception_smell.break_statement += 1
                                     exception_handler.any_exception_smell = True
 
-                                if ExceptionHandler().check_if_state_recovery(c, a.body):
-                                    exception_handler.better_handling_exception_pattern.state_recovery += 1
-                                    exception_handler.better_handling = True
+                                if ExceptionHandler().find_state_recovery(c, a.body):
+                                    exception_handler.robustness.state_recovery += 1
+                                    exception_handler.robustness_exception_handling = True
 
-                                if ExceptionHandler().check_if_retry_pattern(c):
-                                    exception_handler.better_handling_exception_pattern.retry += 1
-                                    exception_handler.better_handling = True
+                                if ExceptionHandler().find_behavior_recovery(c):
+                                    exception_handler.robustness.behavior_recovery += 1
+                                    exception_handler.robustness_exception_handling = True
 
                                 if ExceptionHandler().check_for_return_statement(c):
-                                    exception_handler.better_handling_exception_pattern.return_statement += 1
-                                    exception_handler.better_handling = True
+                                    exception_handler.robustness.return_statement += 1
+                                    exception_handler.robustness_exception_handling = True
 
                                 if ExceptionHandler().check_for_import_from_statement(c, b.body):
-                                    exception_handler.better_handling_exception_pattern.import_from += 1
-                                    exception_handler.better_handling = True
+                                    exception_handler.robustness.import_from += 1
+                                    exception_handler.robustness_exception_handling = True
 
 
                         if exception_handler.robustness_exception_handling or exception_handler.any_exception_smell:

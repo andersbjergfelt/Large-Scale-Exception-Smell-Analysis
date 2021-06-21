@@ -13,5 +13,6 @@ def run():
     Evolution().whole_evolution_with_try_except_tracking(path_to_repo, topic[1])
     ResultExtraction().current_state(path_to_results)
 
+
 if __name__ == '__main__':
     run()
