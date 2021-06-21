@@ -129,7 +129,7 @@ class ExceptionHandler:
         if isinstance(node, ast.Return):
             return True
 
-    def check_for_return_code(self, node, except_body):
+    def check_for_exit_code(self, node, except_body):
 
         if not isinstance(node, ast.Expr):
             return False
@@ -172,7 +172,7 @@ class ExceptionHandler:
     * Replace dummy handler with rethrow
     """
 
-    def check_for_dummy_handler_with_retrow(self, node):
+    def check_for_throw_typed(self, node):
         if isinstance(node, ast.Raise):
             return True
 
@@ -299,7 +299,7 @@ class ExceptionHandler:
                                     exception_handler.exception_smell.print_statement += 1
                                     exception_handler.any_exception_smell = True
 
-                                if ExceptionHandler().check_for_return_code(c, b.body):
+                                if ExceptionHandler().check_for_exit_code(c, b.body):
                                     exception_handler.exception_smell.exit_code += 1
                                     exception_handler.any_exception_smell = True
 
@@ -309,7 +309,7 @@ class ExceptionHandler:
                                     exception_handler.exception_smell.raise_generic_exception += 1
                                     exception_handler.any_exception_smell = True
 
-                                if ExceptionHandler().check_for_dummy_handler_with_retrow(c) and not raise_is_generic:
+                                if ExceptionHandler().check_for_throw_typed(c) and not raise_is_generic:
                                     exception_handler.robustness.raise_type_exception += 1
                                     exception_handler.robustness_exception_handling = True
 
